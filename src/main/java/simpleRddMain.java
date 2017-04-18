@@ -66,13 +66,13 @@ public class simpleRddMain {
 
 
         //Wordcount Process
-        JavaRDD<String> wordsRdd = stringRdd.flatMap(new FlatMapFunction<String, String>() {
-            @Override
-            public Iterator<String> call(String line) throws Exception {
-                return Arrays.asList( line.split(" ")).iterator();
-            }
-        });
-        //JavaRDD<String> words = stringRdd.flatMap(s -> s.split(" ").iterator());
+//        JavaRDD<String> wordsRdd = stringRdd.flatMap(new FlatMapFunction<String, String>() {
+//            @Override
+//            public Iterator<String> call(String line) throws Exception {
+//                return Arrays.asList( line.split(" ")).iterator();
+//            }
+//        });
+        JavaRDD<String> wordsRdd = stringRdd.flatMap(s -> Arrays.asList(s.split(" ")).iterator());
         JavaPairRDD<String, Integer> eachWordRdd = wordsRdd.mapToPair(s -> new Tuple2(s, 1));
         JavaPairRDD<String, Integer> wordCntRdd = eachWordRdd.reduceByKey( (a, b) -> a + b );
         wordCntRdd.collect();
