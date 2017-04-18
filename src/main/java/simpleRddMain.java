@@ -13,6 +13,8 @@ import org.apache.spark.storage.StorageLevel;
 import org.apache.spark.api.java.function.Function;
 import org.apache.spark.api.java.function.FlatMapFunction;
 import org.apache.spark.api.java.function.VoidFunction;
+import org.apache.spark.util.AccumulatorV2;
+import org.apache.spark.util.LongAccumulator;
 import scala.Tuple2;
 import scala.collection.immutable.List;
 
@@ -106,5 +108,85 @@ public class simpleRddMain {
         //Broadcast Variables
         Broadcast<double[]> broadcastVar = sc.broadcast(new double[] {1.1, 2.2, 3.3});
         broadcastVar.value();
+
+        //Accumulator
+        LongAccumulator longAccum = sc.sc().longAccumulator();
+        integerRdd.foreach(x -> longAccum.add(x));
+        System.out.println("\n\n\nAccumulator: " + longAccum.value() + "\n\n\n\n");
+
+        //AccumulatorV2
+        class MyVector {
+            double[] vals;
+
+            public MyVector(int vecLen) {
+                vals = new double[vecLen];
+            }
+
+            public void reset() {
+                for(int i = 0; i < vals.length; i++) {
+                    vals[i] = 0;
+                }
+            }
+
+            public void add(MyVector inVec) {
+                for(int i = 0; i < vals.length; i++) {
+                    vals[i] += inVec.vals[i];
+                }
+            }
+        }
+        class VectorAccumulatorV2 extends AccumulatorV2<MyVector,MyVector> {
+            private MyVector selfVect = null;
+
+            public VectorAccumulatorV2(int vecLen) {
+                selfVect = new MyVector(vecLen);
+            }
+
+            @Override
+            public boolean isZero() {
+                for(int i = 0; i < selfVect.vals.length; i++) {
+                    if(selfVect.vals[i] != 0) return false;
+                }
+                return true;
+            }
+
+            @Override
+            public AccumulatorV2<MyVector, MyVector> copy() {
+                VectorAccumulatorV2 ret = new VectorAccumulatorV2(copy().value().vals.length);
+                return ret;
+            }
+
+            @Override
+            public void reset() {
+                selfVect.reset();
+            }
+
+            @Override
+            public void add(MyVector v) {
+                selfVect.add(v);
+            }
+
+            @Override
+            public void merge(AccumulatorV2<MyVector, MyVector> other) {
+                MyVector minVec = null, maxVec = null;
+                if(other.value().vals.length < selfVect.vals.length) {
+                    minVec = other.value();
+                    maxVec = selfVect;
+                }
+                else {
+                    minVec = selfVect;
+                    maxVec = other.value();
+                }
+                //TODO: merge together.
+            }
+
+            @Override
+            public MyVector value() {
+                return selfVect;
+            }
+        }
+        VectorAccumulatorV2 myVecAcc = new VectorAccumulatorV2(5);
+        sc.sc().register(myVecAcc, "MyVectorAcc1");
+
+
     }
 }
