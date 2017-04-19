@@ -7,6 +7,7 @@ import org.apache.spark.launcher.SparkLauncher;
 public class LaunchSparkProgram {
     public static void main(String[] args) throws Exception {
         if(false) { //Use handle
+            System.out.println("Use SparkAppHandle to launch a spark application.");
             SparkAppHandle handle = new SparkLauncher()
                     .setAppResource("/home/paul/share/mySparkJavaApiLearning/target/learnSparkJavaApi-1.0.jar")
                     .setMainClass("simpleRddMain")
@@ -16,6 +17,7 @@ public class LaunchSparkProgram {
             //Use handle API to monitor / control application.
         }
         else { //Use process
+            System.out.println("Use Process to launch a spark application.");
             Process spark = new SparkLauncher()
                     .setAppResource("/home/paul/share/mySparkJavaApiLearning/target/learnSparkJavaApi-1.0.jar")
                     .setMainClass("simpleRddMain")
@@ -25,5 +27,6 @@ public class LaunchSparkProgram {
             spark.waitFor();
 
         }
+        System.out.println("Launch from SparkLauncher finished.");
     }
 }
