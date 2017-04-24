@@ -95,6 +95,7 @@ public class JavaSQLDataSourceExample {
   public static void main(String[] args) {
     SparkSession spark = SparkSession
       .builder()
+      .master("local[4]")
       .appName("Java Spark SQL data sources example")
       .config("spark.some.config.option", "some-value")
       .getOrCreate();

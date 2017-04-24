@@ -89,6 +89,7 @@ public class JavaSparkSQLExample {
     // $example on:init_session$
     SparkSession spark = SparkSession
       .builder()
+      .master("local[4]")
       .appName("Java Spark SQL basic example")
       .config("spark.some.config.option", "some-value")
       .getOrCreate();
@@ -254,7 +255,7 @@ public class JavaSparkSQLExample {
     // $example on:schema_inferring$
     // Create an RDD of Person objects from a text file
     JavaRDD<Person> peopleRDD = spark.read()
-      .textFile("examples/src/main/resources/people.txt")
+      .textFile("/home/paul/spark/spark-2.1.0-bin-hadoop2.7/examples/src/main/resources/people.txt")
       .javaRDD()
       .map(new Function<String, Person>() {
         @Override
@@ -310,7 +311,7 @@ public class JavaSparkSQLExample {
     // $example on:programmatic_schema$
     // Create an RDD
     JavaRDD<String> peopleRDD = spark.sparkContext()
-      .textFile("examples/src/main/resources/people.txt", 1)
+      .textFile("/home/paul/spark/spark-2.1.0-bin-hadoop2.7/examples/src/main/resources/people.txt", 1)
       .toJavaRDD();
 
     // The schema is encoded in a string

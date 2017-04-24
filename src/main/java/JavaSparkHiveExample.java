@@ -59,6 +59,7 @@ public class JavaSparkHiveExample {
     String warehouseLocation = "spark-warehouse";
     SparkSession spark = SparkSession
       .builder()
+      .master("local[4]")
       .appName("Java Spark Hive Example")
       .config("spark.sql.warehouse.dir", warehouseLocation)
       .enableHiveSupport()
