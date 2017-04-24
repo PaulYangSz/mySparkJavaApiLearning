@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.spark.examples.sql.hive;
+//package org.apache.spark.examples.sql.hive;
 
 // $example on:spark_hive$
 import java.io.Serializable;

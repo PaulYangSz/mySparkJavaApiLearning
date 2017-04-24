@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.spark.examples.sql;
+//package org.apache.spark.examples.sql;
 
 // $example on:schema_merging$
 import java.io.Serializable;
@@ -28,15 +28,13 @@ import java.util.Properties;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.api.java.JavaSparkContext;
 import org.apache.spark.api.java.function.MapFunction;
-import org.apache.spark.sql.Encoders;
+import org.apache.spark.sql.*;
 // $example on:schema_merging$
 // $example on:json_dataset$
-import org.apache.spark.sql.Dataset;
-import org.apache.spark.sql.Row;
 // $example off:json_dataset$
 // $example off:schema_merging$
 // $example off:basic_parquet_example$
-import org.apache.spark.sql.SparkSession;
+
 
 public class JavaSQLDataSourceExample {
 
@@ -111,23 +109,26 @@ public class JavaSQLDataSourceExample {
 
   private static void runBasicDataSourceExample(SparkSession spark) {
     // $example on:generic_load_save_functions$
-    Dataset<Row> usersDF = spark.read().load("examples/src/main/resources/users.parquet");
-    usersDF.select("name", "favorite_color").write().save("namesAndFavColors.parquet");
+    Dataset<Row> usersDF = spark.read().load("/home/paul/spark/spark-2.1.0-bin-hadoop2.7/examples/src/main/resources/users.parquet");
+    usersDF.select("name", "favorite_color").write().mode("overwrite").save("namesAndFavColors.parquet");
+    usersDF.show();
     // $example off:generic_load_save_functions$
     // $example on:manual_load_options$
     Dataset<Row> peopleDF =
-      spark.read().format("json").load("examples/src/main/resources/people.json");
-    peopleDF.select("name", "age").write().format("parquet").save("namesAndAges.parquet");
+      spark.read().format("json").load("/home/paul/spark/spark-2.1.0-bin-hadoop2.7/examples/src/main/resources/people.json");
+    peopleDF.select("name", "age").write().mode(SaveMode.Ignore).format("parquet").save("namesAndAges.parquet");
+    peopleDF.show();
     // $example off:manual_load_options$
     // $example on:direct_sql$
     Dataset<Row> sqlDF =
-      spark.sql("SELECT * FROM parquet.`examples/src/main/resources/users.parquet`");
+      spark.sql("SELECT * FROM parquet.`/home/paul/spark/spark-2.1.0-bin-hadoop2.7/examples/src/main/resources/users.parquet`");
+    sqlDF.show();
     // $example off:direct_sql$
   }
 
   private static void runBasicParquetExample(SparkSession spark) {
     // $example on:basic_parquet_example$
-    Dataset<Row> peopleDF = spark.read().json("examples/src/main/resources/people.json");
+    Dataset<Row> peopleDF = spark.read().json("/home/paul/spark/spark-2.1.0-bin-hadoop2.7/examples/src/main/resources/people.json");
 
     // DataFrames can be saved as Parquet files, maintaining the schema information
     peopleDF.write().parquet("people.parquet");
@@ -184,6 +185,7 @@ public class JavaSQLDataSourceExample {
     // Read the partitioned table
     Dataset<Row> mergedDF = spark.read().option("mergeSchema", true).parquet("data/test_table");
     mergedDF.printSchema();
+    mergedDF.show();
 
     // The final schema consists of all 3 columns in the Parquet files together
     // with the partitioning column appeared in the partition directory paths
@@ -199,7 +201,7 @@ public class JavaSQLDataSourceExample {
     // $example on:json_dataset$
     // A JSON dataset is pointed to by path.
     // The path can be either a single text file or a directory storing text files
-    Dataset<Row> people = spark.read().json("examples/src/main/resources/people.json");
+    Dataset<Row> people = spark.read().json("/home/paul/spark/spark-2.1.0-bin-hadoop2.7/examples/src/main/resources/people.json");
 
     // The inferred schema can be visualized using the printSchema() method
     people.printSchema();
