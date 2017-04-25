@@ -34,6 +34,8 @@ import org.apache.spark.streaming.api.java.JavaPairDStream;
 import org.apache.spark.streaming.api.java.JavaReceiverInputDStream;
 import org.apache.spark.streaming.api.java.JavaStreamingContext;
 
+import org.apache.log4j.Level;
+
 /**
  * Counts words in UTF8 encoded, '\n' delimited text received from the network every second.
  *
@@ -55,6 +57,7 @@ public final class JavaNetworkWordCount {
     }
 
     //StreamingExamples.setStreamingLogLevels();
+    org.apache.log4j.Logger.getRootLogger().setLevel(Level.WARN);
 
     // Create the context with a 1 second batch size
     SparkConf sparkConf = new SparkConf().setMaster("local[2]").setAppName("JavaNetworkWordCount");
