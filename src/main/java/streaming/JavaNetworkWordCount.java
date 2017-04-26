@@ -92,8 +92,14 @@ public final class JavaNetworkWordCount {
 //      });
     JavaPairDStream<String, Integer> wordCounts = words.mapToPair(s -> new Tuple2<>(s, 1))
                                                        .reduceByKey((a, b) -> a+b);
-
     wordCounts.print();
+
+
+    JavaPairDStream<String, Integer> wordPairs = words.mapToPair(s -> new Tuple2<>(s, 1));
+    JavaPairDStream<String, Integer> wordWindowCounts = wordPairs.reduceByKeyAndWindow((a, b) -> a + b,
+                                                                   Durations.seconds(30), Durations.seconds(10));
+    wordWindowCounts.print();
+
 
     ssc.start();
     ssc.awaitTermination();
