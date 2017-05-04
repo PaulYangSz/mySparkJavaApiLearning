@@ -38,6 +38,7 @@ public class JavaLogisticRegressionSummaryExample {
     // Load training data
     Dataset<Row> training = spark.read().format("libsvm")
       .load("/home/paul/spark/spark-2.1.0-bin-hadoop2.7/data/mllib/sample_libsvm_data.txt");
+    training.printSchema();
 
     LogisticRegression lr = new LogisticRegression()
       .setMaxIter(10)
