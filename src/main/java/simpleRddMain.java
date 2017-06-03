@@ -2,17 +2,11 @@
  * Created by Paul Yang on 2017/4/15.
  */
 import org.apache.spark.SparkConf;
-import org.apache.spark.api.java.JavaDoubleRDD;
-import org.apache.spark.api.java.JavaPairRDD;
-import org.apache.spark.api.java.JavaSparkContext;
-import org.apache.spark.api.java.JavaRDD;
+import org.apache.spark.api.java.*;
 import org.apache.spark.SparkContext;
-import org.apache.spark.api.java.function.Function2;
+import org.apache.spark.api.java.function.*;
 import org.apache.spark.broadcast.Broadcast;
 import org.apache.spark.storage.StorageLevel;
-import org.apache.spark.api.java.function.Function;
-import org.apache.spark.api.java.function.FlatMapFunction;
-import org.apache.spark.api.java.function.VoidFunction;
 import org.apache.spark.util.AccumulatorV2;
 import org.apache.spark.util.LongAccumulator;
 import scala.Tuple2;
@@ -30,6 +24,10 @@ public class simpleRddMain {
 
     public static void main(String[] args) {
 
+        SparkConf conf = new SparkConf().setAppName("simple RDD opt")
+                .set("spark.hadoop.validateOutputSpecs", "false");
+        JavaSparkContext sc = new JavaSparkContext(conf);
+
         //parallel a RDD
         ArrayList<Integer> intList = new ArrayList<Integer>(){{
             add(1);
@@ -38,14 +36,56 @@ public class simpleRddMain {
             add(4);
             add(5);
         }};
-        SparkConf conf = new SparkConf().setAppName("simple RDD opt").setMaster("local[2]");
-        JavaSparkContext sc = new JavaSparkContext(conf);
+
         JavaRDD<Integer> integerRdd = sc.parallelize(intList); // Get a RDD from a list.
         System.out.println("Integer RDD:");
         integerRdd.collect();
 
+        ArrayList<Tuple2<Integer, String>> idValList = new ArrayList<Tuple2<Integer, String>>(){
+            {
+                add(new Tuple2<>(1, "str1"));
+                add(new Tuple2<>(1, "str11"));
+                add(new Tuple2<>(2, "str2"));
+                add(new Tuple2<>(4, "str44"));
+            };
+        };
+        JavaPairRDD<Integer, String> paralPairRdd = sc.parallelizePairs(idValList);
+
+        ArrayList<Tuple2<Integer, String>> otherIdValList = new ArrayList<Tuple2<Integer, String>>(){
+            {
+                add(new Tuple2<>(2, "str2"));
+                add(new Tuple2<>(3, "str3"));
+                add(new Tuple2<>(4, "str4"));
+                add(new Tuple2<>(5, "str5"));
+                add(new Tuple2<>(7, "str77"));
+            }
+        };
+        JavaPairRDD<Integer, String> otherParalPairRdd = sc.parallelizePairs(otherIdValList);
+
+        JavaPairRDD<Integer, String> substractRdd = paralPairRdd.subtract(otherParalPairRdd);
+        substractRdd.foreach(s -> System.out.println("substract*" + s.toString()));
+
+        JavaPairRDD<Integer, String> intersectRdd = paralPairRdd.intersection(otherParalPairRdd);
+        intersectRdd.foreach(s -> System.out.println("intersection*" + s.toString()));
+
+        JavaPairRDD<Integer, Tuple2<String, String>> joinRdd = paralPairRdd.join(otherParalPairRdd);
+        joinRdd.foreach(s -> System.out.println("join*"+ s.toString()));
+
+        JavaPairRDD<Integer, Tuple2<String, Optional<String>>> leftOuterJoinRdd = paralPairRdd.leftOuterJoin(otherParalPairRdd);
+        leftOuterJoinRdd.foreach(s -> System.out.println("leftOuterJoin*"+ s.toString()));
+
+        JavaPairRDD<Integer, Tuple2<Optional<String>, String>> rightOuterJoinRdd = paralPairRdd.rightOuterJoin(otherParalPairRdd);
+        rightOuterJoinRdd.foreach(s -> System.out.println("rightOuterJoin*"+ s.toString()));
+
+        JavaPairRDD<Integer, Tuple2<Optional<String>, Optional<String>>> fullOuterJoinRdd = paralPairRdd.fullOuterJoin(otherParalPairRdd);
+        fullOuterJoinRdd.foreach(s -> System.out.println("fullOuterJoin*"+ s.toString()));
+
+        JavaPairRDD<Integer, Tuple2<Iterable<String>, Iterable<String>>> coGroupRdd = paralPairRdd.cogroup(otherParalPairRdd);
+        coGroupRdd.foreach(s -> System.out.println("+++"+ s.toString()));
+
+
         //Lambda expressions
-        JavaRDD<String> stringRdd = sc.textFile("/home/paul/spark/spark-2.1.0-bin-hadoop2.7/README.md");
+        JavaRDD<String> stringRdd = sc.textFile("G:/ImportantTools/spark-2.1.0-bin-hadoop2.7/README.md");
         JavaRDD<Integer> intLineLength = stringRdd.map(s -> s.length());
         intLineLength.persist(StorageLevel.MEMORY_ONLY());
         int totalLen = intLineLength.reduce((a, b) -> a + b);
@@ -63,7 +103,6 @@ public class simpleRddMain {
            public Integer call (Integer a, Integer b) {return a + b;}
         });
         System.out.println("<<<anonymous inner class or a name one>>>: Total Len = " + funcTotalLen);
-
 
         //Wordcount Process
 //        JavaRDD<String> wordsRdd = stringRdd.flatMap(new FlatMapFunction<String, String>() {
