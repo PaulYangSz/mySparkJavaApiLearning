@@ -25,6 +25,7 @@ public class simpleRddMain {
     public static void main(String[] args) {
 
         SparkConf conf = new SparkConf().setAppName("simple RDD opt")
+                .setMaster("local[4]")
                 .set("spark.hadoop.validateOutputSpecs", "false");
         JavaSparkContext sc = new JavaSparkContext(conf);
 
@@ -53,6 +54,7 @@ public class simpleRddMain {
 
         ArrayList<Tuple2<Integer, String>> otherIdValList = new ArrayList<Tuple2<Integer, String>>(){
             {
+                add(new Tuple2<>(1, "str111"));
                 add(new Tuple2<>(2, "str2"));
                 add(new Tuple2<>(3, "str3"));
                 add(new Tuple2<>(4, "str4"));
@@ -82,6 +84,35 @@ public class simpleRddMain {
 
         JavaPairRDD<Integer, Tuple2<Iterable<String>, Iterable<String>>> coGroupRdd = paralPairRdd.cogroup(otherParalPairRdd);
         coGroupRdd.foreach(s -> System.out.println("+++"+ s.toString()));
+
+
+        String[] strArr1 = {"str1"};
+        String[] strArr11 = {"str11"};
+        String[] strArr2 = {"str2"};
+        String[] strArr4 = {"str44"};
+        String[] strArrSame2 = {"str2"};
+        ArrayList<Tuple2<Integer, String[]>> idValArryList = new ArrayList<Tuple2<Integer, String[]>>(){
+            {
+                add(new Tuple2<Integer, String[]>(1, strArr1));
+                add(new Tuple2<Integer, String[]>(1, strArr11));
+                add(new Tuple2<Integer, String[]>(2, strArr2));
+                add(new Tuple2<Integer, String[]>(4, strArr4));
+            };
+        };
+        JavaPairRDD<Integer, String[]> paralArryPairRdd = sc.parallelizePairs(idValArryList);
+
+        ArrayList<Tuple2<Integer, String[]>> otherIdValArryList = new ArrayList<Tuple2<Integer, String[]>>(){
+            {
+                add(new Tuple2<Integer, String[]>(1, strArr11));
+                add(new Tuple2<Integer, String[]>(2, strArrSame2));
+            };
+        };
+        JavaPairRDD<Integer, String[]> otherParalArryPairRdd = sc.parallelizePairs(otherIdValArryList);
+
+        JavaPairRDD<Integer, String[]> substractArrRdd = paralArryPairRdd.subtract(otherParalArryPairRdd);
+        substractArrRdd.foreach(s -> System.out.println("~~~~substract*" + s.toString()));
+
+
 
 
         //Lambda expressions
